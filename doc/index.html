@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns="http://www.w3.org/1999/html">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <title>问答项目</title>
+  <!-- Bootstrap 的 CSS 文件 -->
+  <link rel="stylesheet" href="/js/bootstrap.css" >
+	<link rel="stylesheet" href="/js/fontawesome/css/all.min.css">
+
+	<!-- 选项 1：jQuery 和 Bootstrap 集成包（集成了 Popper） -->
+  <script src="/js/jquery.min.js"></script>
+  <script src="/js/bootstrap.bundle.js" ></script>
+  <script src="/js/vue.js"></script>
+  <script src="/js/axios.js"></script>
+  <script src="/js/myUtil.js"></script>
+</head>
+<body>
+<nav aria-label="breadcrumb">
+	<ol class="breadcrumb">
+		<li class="breadcrumb-item"><a href="/">首页</a></li>
+		<li class="breadcrumb-item active" aria-current="page">列表</li>
+	</ol>
+</nav>
+	<div class="container">
+
+	  <div  class="row">
+	  
+		<div class="offset-md-1 col-md-10"id="content">
+			<div class="mb-4 h2">文档列表</div>
+			<div id="docList">
+				<ol class="list-group">
+					<li v-for="doc in docs" class="list-group-item list-group-item-info">
+						<a class="mx-2" :href='"detail.html?"+doc.id'>
+							<span class="mr-2" v-html="logos[doc.type]"></span>
+							<span v-html=doc.title></span>
+						</a>
+					</li>
+				</ol>
+			</div>
+		</div>
+	  </div>
+	</div>
+</body>
+<script>
+let hzApp = new Vue({
+    el: "#docList",
+    data: {
+
+      docs:	[],
+			logos:['<i class="fa-brands fa-markdown" style="color: #090e15;"></i>','<i class="fa-brands fa-html5" style="color: #541a84;"></i>','<i class="fa-solid fa-file-doc" style="color: #2b5797;"></i>','<i class="fa-solid fa-file-pdf" style="color: #eb0012;"></i>']
+//[{"id":"1","name":"project.md","title":"稻草问答项目","info":null,"type":"0"},{"id":"2","name":"wamp.md","title":"wamp安装文档","info":null,"type":"0"}]
+    },
+    created:function(){
+		
+		  this.searchDoc(1)
+    },
+    
+    methods:{
+		
+      searchDoc:function(page){
+        axios.get('/doc/php/docDb.php?type=1').then(r => {
+		  if(r.data.data!=null){
+			this.docs = r.data.data
+		  }else{
+			setTitle('没有文档')
+			alert('没有文档')
+		  }
+		  
+        }).catch(function (error) {
+          // handle error
+          console.log(error);
+        });
+      }
+	  }
+  })
+
+    
+</script>
+</html>

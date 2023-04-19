@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns="http://www.w3.org/1999/html">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <title>问答项目</title>
+  <!-- Bootstrap 的 CSS 文件 -->
+  <link rel="stylesheet" href="/js/bootstrap.css" >
+  <link rel="stylesheet" href="/js/md.css" >
+  <!--
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.6.0/styles/default.min.css">-->
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/11.6.0/highlight.min.js"></script>
+    <link href="https://getbootstrap.com/docs/5.3/assets/css/docs.css" rel="stylesheet">
+  <!-- 选项 1：jQuery 和 Bootstrap 集成包（集成了 Popper） -->
+  <script src="/js/jquery.min.js"></script>
+  <script src="/js/bootstrap.bundle.js" ></script>
+  <script src="/js/vue.js"></script>
+  <script src="/js/axios.js"></script>
+  <script src="/js/myUtil.js"></script>
+	<script src="/js/marked.min.js"></script>
+
+<!--	<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>-->
+  <style>
+		#aside-ul{
+
+			display:none;
+		}
+		#menu{
+
+			display:none;
+		}
+		#menu:checked + ul{
+			display:block;
+		}
+		@media(min-width:800px){
+			#aside-span{
+				display:none;
+			}
+			#aside-ul{
+			
+				display:block;
+			}
+		}
+	</style>
+</head>
+<body>
+	<div id="docApp">
+	<nav aria-label="breadcrumb">
+	  <ol class="breadcrumb">
+		<li class="breadcrumb-item"><a href="/">首页</a></li>
+		<li class="breadcrumb-item"><a href="/doc">列表</a></li>
+		<li class="breadcrumb-item"><a :href="'detail.html?'+detailId">文档描述</a></li>
+		<li class="breadcrumb-item active" aria-current="page">{{current}}</li>
+	  </ol>
+	</nav>
+	<div>
+		<label id="aside-label" for="menu">
+			<span id="aside-span">菜单</span>
+		</label>
+		<input id="menu" type="checkbox"/>
+		<ul id="aside-ul">
+			<li>Li1</li>
+			<li>li2</li>
+			<li>li3</li>
+		</ul>
+	</div>
+	<div id="htmId" ></div>
+	<div class="container">
+	  <div  class="row">
+		<div class="offset-md-1 col-md-10"id="content"></div>
+	  </div>
+	</div>
+	</div>
+</body>
+<script>
+//hljs.highlightAll();
+let docApp = new Vue({
+    el: "#docApp",
+    data: {
+		current:'当前',
+		detailId:null
+	},
+    created:function(){
+		let param = parsePram()
+		if(isNaN(param)){
+			if(param.type!=null&param.title!=null&&param.name!=null){
+				this.detailId=param.main
+				this.current = param.title
+				setTitle(param.title)
+				getMdContent(param.name,param.type)
+			}else{
+				$("#content").html('未找到信息')
+				setTitle('信息有误')
+				alert('信息有误')
+			}
+			
+		}else{
+		  this.searchDoc(param)
+		}
+    },
+    
+    methods:{
+      searchDoc:function(id){
+        axios.get('/doc/php/docDb.php?type=0&id='+id).then(r => {
+		console.log(r.data.data)
+		  if(r.data.data!=null){
+			let name=r.data.data.name
+			let title = r.data.data.title
+			let type = r.data.data.type
+			if(r.data.data.sub>0){
+				this.detailId=r.data.data.sub
+			}else{
+				this.detailId=r.data.data.id
+			}
+			this.current = title
+			setTitle(title)
+			getMdContent(name,type)
+		  }else{
+			$("#content").html('未找到信息')
+			setTitle('未找到信息')
+			alert('未找到信息')
+		  }
+		  
+        }).catch(function (error) {
+          // handle error
+          console.log(error);
+        });
+      }
+	  }
+  })
+  function getMdContent(mdName,type){
+	if('0'==type){
+		$.get('md/'+mdName, function(response, status, xhr){
+			$("#content").html(marked.parse(response));
+		});
+	}else{
+		$.get('htm/'+mdName, function(response, status, xhr){
+			let parser = new DOMParser();
+			//console.log(response)
+			let htmlDoc = parser.parseFromString(response, 'text/html');
+			let bodyTag = htmlDoc.getElementsByTagName('body')[0]
+			//console.log(bodyTag.innerHTML)
+			//let thisBodyTag =  document.getElementsByTagName('body')[0]
+			//thisBodyTag.innerHTML=bodyTag.innerHTML
+			$("#htmId").html(bodyTag.innerHTML)
+		});
+	}
+	
+  }
+   
+    
+</script>
+</html>

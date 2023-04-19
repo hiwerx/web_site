@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="zh" xmlns="http://www.w3.org/1999/html">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <title>详情</title>
+  <!-- Bootstrap 的 CSS 文件 -->
+  <link rel="stylesheet" href="/js/bootstrap.css" >
+  <link rel="stylesheet" href="/js/fontawesome/css/all.min.css">
+
+  <!-- 选项 1：jQuery 和 Bootstrap 集成包（集成了 Popper） -->
+  <script src="/js/jquery.min.js"></script>
+  <script src="/js/bootstrap.bundle.js" ></script>
+  <script src="/js/vue.js"></script>
+  <script src="/js/axios.js"></script>
+  <script src="/js/myUtil.js"></script>
+</head>
+<body>
+<div id="detailId">
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="/">首页</a></li>
+    <li class="breadcrumb-item"><a href="/doc">列表</a></li>
+    <li class="breadcrumb-item active" aria-current="page">文档描述</li>
+    </ol>
+  </nav>
+  <div class="container">
+    <div  class="row">
+    <div class="offset-md-1 col-md-10"id="content">
+      
+      <div class="card">
+        <div class="card-header">
+        <div><h3><span v-text="docData.doc.title"></span></h3></div>
+        <div><p v-text="docData.doc.info"></p></div>
+        <div v-if="docData.list==null||docData.list.length==0">
+          <a v-if="docData.doc.type==3" :href="'pdfjs/web/viewer.html?file=../../pdf/'+docData.doc.name" class="card-link">
+            查看
+          </a>
+          <a v-else :href="'book.html?name='+docData.doc.name+'&title='+docData.doc.title+'&type='+docData.doc.type+'&main='+docData.doc.id" class="card-link">
+          查看
+          </a>
+        </div>
+        </div>
+        <div v-if="docData.list!=null&&docData.list.length>0" class="card-body">
+        
+         <ul class="list-group list-group-flush" >
+          <li class="list-group-item" v-for="sub in docData.list">
+            <a v-if="sub.type==3" :href="'pdfjs/web/viewer.html?file=../../pdf/'+sub.name" class="card-link"><h6 class="card-title">
+              <span class="mr-2" v-html="logos[sub.type]"></span>
+              <span v-html=sub.title></span>
+            </h6>
+            </a>
+            <a v-else :href="'book.html?name='+sub.name+'&title='+sub.title+'&type='+sub.type+'&main='+docData.doc.id" class="card-link">
+            <h6 class="card-title">
+              <span class="mr-2" v-html="logos[sub.type]"></span>
+              <span v-html=sub.title></span>
+            </h6>
+            </a>
+        <p class="card-text text-secondary" v-text="sub.info"></p>        
+          </li>
+        </ul>
+        </div>        
+      </div>
+    </div>
+    </div>
+  </div>
+</div>
+</body>
+<script>
+    
+  let detailApp = new Vue({
+    el:"#detailId",
+    data:{
+      logos:['<i class="fa-brands fa-markdown" style="color: #090e15;"></i>','<i class="fa-brands fa-html5" style="color: #541a84;"></i>','<i class="fa-solid fa-file-doc" style="color: #2b5797;"></i>','<i class="fa-solid fa-file-pdf" style="color: #eb0012;"></i>'],
+      docData:{
+        "doc": {
+          "id": null,
+          "name": "",
+          "title": "",
+          "info": "",
+          "type": "0",
+          "sub": null,
+          "cttime": null
+        },
+        "list": []
+      }
+    },
+    created:function(){
+    let param = parsePram()
+    if(param==''||isNaN(param)){
+    $("#content").html('未找到信息')
+        setTitle('参数错误')
+        alert('参数错误')
+    }else{
+      this.getDoc(param)
+    }
+    },
+    methods:{
+      getDoc:function(id){
+      axios.get('/doc/php/docDb.php?type=2&id='+id).then(r => {
+      console.log(r.data.data)
+        if(r.data.code==0){
+        this.docData=r.data.data
+        setTitle('文件详情-'+r.data.data.doc.title)
+        }else{
+        $("#content").html('未找到信息')
+        setTitle('未找到信息')
+        alert('未找到信息')
+        }
+        
+      }).catch(function (error) {
+        // handle error
+        console.log(error);
+      });
+      }
+    }
+  
+  })
+</script>
+</html>

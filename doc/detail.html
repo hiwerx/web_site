@@ -39,6 +39,7 @@
           <a v-else :href="'book.html?name='+docData.doc.name+'&title='+docData.doc.title+'&type='+docData.doc.type+'&main='+docData.doc.id" class="card-link">
           查看
           </a>
+          <a class="mx-3" :href="fileType[docData.doc.type]+'/'+docData.doc.name" :download="docData.doc.title+'.'+fileType[docData.doc.type]">下载</a>
         </div>
         </div>
         <div v-if="docData.list!=null&&docData.list.length>0" class="card-body">
@@ -83,7 +84,8 @@
           "cttime": null
         },
         "list": []
-      }
+      },
+      fileType:['md','html','doc','pdf']
     },
     created:function(){
     let param = parsePram()

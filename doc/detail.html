@@ -46,6 +46,8 @@
         
          <ul class="list-group list-group-flush" >
           <li class="list-group-item" v-for="sub in docData.list">
+            <div class="form-row">
+              <div class="col">
             <a v-if="sub.type==3" :href="'pdfjs/web/viewer.html?file=../../pdf/'+sub.name" class="card-link"><h6 class="card-title">
               <span class="mr-2" v-html="logos[sub.type]"></span>
               <span v-html=sub.title></span>
@@ -57,7 +59,13 @@
               <span v-html=sub.title></span>
             </h6>
             </a>
-        <p class="card-text text-secondary" v-text="sub.info"></p>        
+            </div>
+              <div class="col-2 text-right">
+                <a  :href="fileType[sub.type]+'/'+sub.name" :download="sub.title+'.'+fileType[sub.type]">下载</a>
+              </div>
+            </div>
+            <p class="card-text text-secondary" v-text="sub.info"></p>
+
           </li>
         </ul>
         </div>        

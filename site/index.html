@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <!-- 必须的 meta 标签 -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <title>网址</title>
+  <style>
+    .cancel{
+	  font-size: 0.8rem;
+      color: #0c7104;
+      cursor:pointer
+    
+    }
+    .cancel:hover{
+      color: rgba(34, 255, 0, 0.55);
+    }
+    img{
+      width:auto;
+      height:auto;
+      max-width:100%;
+      max-height:100%;
+    }
+  </style>
+    <!-- Bootstrap 的 CSS 文件 -->
+   <!-- Bootstrap 的 CSS 文件 -->
+  <link rel="stylesheet" href="/js/bootstrap.css" >
+  <!-- 选项 1：jQuery 和 Bootstrap 集成包（集成了 Popper） -->
+  <script src="/js/jquery.min.js"></script>
+  <script src="/js/bootstrap.bundle.js" ></script>
+  <script src="/js/vue.js"></script>
+  <script src="/js/axios.js"></script>
+  <script src="/js/myUtil.js"></script>
+</head>
+<body>
+<div>
+	<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+    <li class="breadcrumb-item"><a href="/">首页</a></li>
+    <li class="breadcrumb-item active" aria-current="page">网址</li>
+    </ol>
+  </nav>
+</div>
+<div id="websiteId" class="container">
+
+
+<!--  正文-->
+  <div><h3>资源网站</h3></div>
+  <div class="row row-cols-2 row-cols-sm-2 row-cols-md-4">
+    <div v-for="ws in websites" style="height: 40px " class="col py-2 px-3" >
+<!--      未保存样式-->
+      <a class="text-decoration-none" :href="ws.url"  target="_blank" >
+        <img :src="ws.icon" onerror="this.src='https://www.tutorialkart.com/favicon.ico'">
+		    <span v-text="ws.name"></span>
+      </a>
+    </div>
+  </div>
+
+</div>
+
+</body>
+
+</html>
+<script>
+  let websiteApp = new Vue({
+    el: "#websiteId",
+    data: {
+	  websites:[],
+	  otherWebsites:[]
+    },
+	created:function(){
+		this.getWebsites()
+    },
+    methods:{
+      
+      getWebsites:function(){
+        axios.post('/site/php/website.php?type=1').then(r => {
+          //alert(r.data.msg)
+          if(r.data.data!=null){
+            this.websites = r.data.data
+          }
+        }).catch(function (error) {
+          // handle error
+          console.log(error);
+        });
+      }
+    }
+  })
+</script>

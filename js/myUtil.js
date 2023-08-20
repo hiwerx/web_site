@@ -93,6 +93,10 @@ function removeCookie(name){
  */
 function pageInfo(current,size,count){
     let pageInfo = {};
+    if (isNaN(current)||isNaN(size)||isNaN(count)||size==0)return pageInfo
+    current=parseInt(current)
+    size=parseInt(size)
+    count=parseInt(count)
     let pages =count%size==0?count/size:parseInt(count/size+1)
     if (current<1) current = 1
     else if (current>pages) current = pages

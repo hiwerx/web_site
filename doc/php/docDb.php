@@ -20,10 +20,24 @@ if($type==0) {
 	exit;
 } else if($type==1) {
 	// list页面使用
-	$querySql = "select * from doc where sub < 1 limit 0 , 30";
+
+    $page = isset($_GET['page'])?$_GET['page']:1;
+    $pageSize = isset($_GET['pageSize'])?$_GET['pageSize']:30;
+    if (!(isInteger($pageSize)&&isInteger($page))){
+        echo $jsonResult->fail1('参数错误');
+        exit();
+    }
+    if ($pageSize>30)$pageSize=30;
+    $skipNum = ($page-1)*$pageSize;
+
+	$querySql = "select * from doc where sub < 1 limit $skipNum, $pageSize";
 	$res = $db->execute($querySql);
 	if($res !=-1) {
-		echo $jsonResult->succ1($res);
+	    $count=0;
+	    $countSql = "select count(*) ct from doc where sub < 1";
+	    $countRes = $db->execute($countSql);
+	    if ($countRes!=-1)$count = $countRes[0]['ct'];
+		echo $jsonResult->succ1(array('list'=>$res,'count'=>$count));
 	} else {
 		echo $jsonResult->fail0();
 	}
@@ -42,7 +56,7 @@ if($type==0) {
 	}
 	if($mainDoc['sub']>0) {
 		// sub大于0说明是子文档，需查询主文档
-		$querySql = "select * from doc where id = ".$sub;
+		$querySql = "select * from doc where id = ".$mainDoc['sub'];
 		$res = $db->execute($querySql);
 		if($res !=-1 && count($res)>0) {
 			$mainDoc = $res[0];
@@ -54,7 +68,7 @@ if($type==0) {
 	$subDocs = array();
 	// 查询子文档
 	if($mainDoc['sub']==-1) {
-		$querySql = "select * from doc where sub = '".$mainDoc['id']."' order by sort ";
+		$querySql = "select * from doc where sub = '".$mainDoc['id']."' order by sort ASC";
 		$res = $db->execute($querySql);
 		if($res!=-1) {
 			$subDocs=$res;
@@ -66,4 +80,8 @@ if($type==0) {
 } else {
 	echo $jsonResult->fail1("bussy not support");
 	exit;
+}
+
+function isInteger($input){
+    return(ctype_digit(strval($input)));
 }

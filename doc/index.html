@@ -26,9 +26,9 @@
 
 	  <div  class="row">
 	  
-		<div class="offset-md-1 col-md-10"id="content">
+		<div class="offset-md-1 col-md-10"  id="docList">
 			<div class="mb-4 h2">文档列表</div>
-			<div id="docList">
+			<div>
 				<ol class="list-group">
 					<li v-for="doc in docs" class="list-group-item list-group-item-info">
 						<a class="mx-2" :href='"detail.html?"+doc.id'>
@@ -38,6 +38,36 @@
 					</li>
 				</ol>
 			</div>
+
+<!--			分页-->
+			<div class="my-3">
+				<nav v-if="page.pages>1" aria-label="Page navigation example">
+					<ul class="pagination justify-content-center">
+						<li class="page-item" v-if="!page.isFirstPage"><a class="page-link" href="?p=1"
+						>首页</i></a></li>
+
+						<li class="page-item" v-if="page.hasPreviousPage"><a class="page-link" :href="'?p='+page.prePage"
+						><</i></a></li>
+						<li v-for="p in page.pageNums" v-bind:class="'page-item '+(p==page.current?'active':'d-none d-md-block')"><a
+								class="page-link" :href="'?p='+p" v-text="p">1</a></li>
+						<!--                    <li class="page-item active"><a class="page-link" href="#">2</a></li>-->
+
+						<li class="page-item" v-if="page.hasNextPage"><a class="page-link " :href="'?p='+page.nextPage"
+						>></i></a></li>
+
+						<li class="page-item" v-if="!page.isLastPage"><a class="page-link" :href="'?p='+page.pages" >尾页</i></a>
+						</li>
+					</ul>
+				</nav>
+
+				<nav v-if="page.pages>1" aria-label="Page navigation example">
+					<ul class="pagination justify-content-center">
+						<li><a class="page-link " >调转至</a></li>
+						<li><input class="page-link " id="targetPageId"  onchange="targetPageSearch()" size="1" type="text"></li>
+					</ul>
+				</nav>
+			</div>
+<!--			分页结束-->
 		</div>
 	  </div>
 	</div>
@@ -48,20 +78,28 @@ let hzApp = new Vue({
     data: {
 
       docs:	[],
-			logos:['<i class="fa-brands fa-markdown" style="color: #090e15;"></i>','<i class="fa-brands fa-html5" style="color: #541a84;"></i>','<i class="fa-solid fa-file-doc" style="color: #2b5797;"></i>','<i class="fa-solid fa-file-pdf" style="color: #eb0012;"></i>']
+			logos:['<i class="fa-brands fa-markdown" style="color: #090e15;"></i>','<i class="fa-brands fa-html5" style="color: #541a84;"></i>','<i class="fa-solid fa-file-doc" style="color: #2b5797;"></i>','<i class="fa-solid fa-file-pdf" style="color: #eb0012;"></i>'],
 //[{"id":"1","name":"project.md","title":"稻草问答项目","info":null,"type":"0"},{"id":"2","name":"wamp.md","title":"wamp安装文档","info":null,"type":"0"}]
+   		page:{},
+			pageSize:8//当前页面显示页数大小
     },
     created:function(){
-		
-		  this.searchDoc(1)
+			let reqData = parsePram();
+			if (isNaN(reqData.p)) {
+		  	this.searchDoc(1)
+			}else {
+				this.searchDoc(reqData.p)
+			}
     },
     
     methods:{
 		
       searchDoc:function(page){
-        axios.get('/doc/php/docDb.php?type=1').then(r => {
+        axios.get('/doc/php/docDb.php?type=1&page='+page + '&pageSize=' + this.pageSize).then(r => {
 		  if(r.data.data!=null){
-			this.docs = r.data.data
+				this.docs = r.data.data.list
+				this.page = pageInfo(page,this.pageSize,r.data.data.count)
+				console.log(this.page)
 		  }else{
 			setTitle('没有文档')
 			alert('没有文档')
@@ -74,7 +112,14 @@ let hzApp = new Vue({
       }
 	  }
   })
-
+ function targetPageSearch () {
+	let targetPage = $('#targetPageId')[0].value
+	 if (isNaN(targetPage)){
+	 	alert('请输入数字')
+	 }else {
+		 location.href="?p="+targetPage
+	 }
+}
     
 </script>
 </html>

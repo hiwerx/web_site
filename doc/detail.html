@@ -80,7 +80,12 @@
   let detailApp = new Vue({
     el:"#detailId",
     data:{
-      logos:['<i class="fa-brands fa-markdown" style="color: #090e15;"></i>','<i class="fa-brands fa-html5" style="color: #541a84;"></i>','<i class="fa-solid fa-file-doc" style="color: #2b5797;"></i>','<i class="fa-solid fa-file-pdf" style="color: #eb0012;"></i>'],
+      logos:['<i class="fa-brands fa-markdown" style="color: #090e15;"></i>',
+        '<i class="fa-brands fa-html5" style="color: #541a84;"></i>',
+        '<i class="fa-solid fa-file-doc" style="color: #2b5797;"></i>',
+        '<i class="fa-solid fa-file-pdf" style="color: #eb0012;"></i>',
+        '<i class="fa-solid fa-image"></i>'
+      ],
       docData:{
         "doc": {
           "id": null,
@@ -93,7 +98,7 @@
         },
         "list": []
       },
-      fileType:['md','html','doc','pdf']
+      fileType:['md','html','doc','pdf','json']
     },
     created:function(){
     let param = parsePram()

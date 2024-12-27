@@ -21,31 +21,17 @@
 
 <!--	<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>-->
   <style>
-		#aside-ul{
-
-			display:none;
-		}
-		#menu{
-
-			display:none;
-		}
-		#menu:checked + ul{
-			display:block;
-		}
-		@media(min-width:800px){
-			#aside-span{
-				display:none;
-			}
-			#aside-ul{
-			
-				display:block;
-			}
-		}
+    img{
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+		
 	</style>
 </head>
 <body>
 	<div id="docApp">
-	<nav aria-label="breadcrumb">
+	<nav  aria-label="breadcrumb">
 	  <ol class="breadcrumb">
 		<li class="breadcrumb-item"><a href="/">首页</a></li>
 		<li class="breadcrumb-item"><a href="/doc">列表</a></li>
@@ -53,32 +39,55 @@
 		<li class="breadcrumb-item active" aria-current="page">{{current}}</li>
 	  </ol>
 	</nav>
-	<div>
-		<label id="aside-label" for="menu">
-			<span id="aside-span">菜单</span>
-		</label>
-		<input id="menu" type="checkbox"/>
-		<ul id="aside-ul">
-			<li>Li1</li>
-			<li>li2</li>
-			<li>li3</li>
-		</ul>
-	</div>
+	
+<!--    加载html文件数据-->
 	<div id="htmId" ></div>
 	<div class="container">
 	  <div  class="row">
-		<div class="offset-md-1 col-md-10"id="content"></div>
+<!--      加载md文件数据-->
+		<div class="offset-md-1 col-md-10">
+
+      <div id="content"></div>
+      <!--      加载json数据-->
+      <div v-if="allJsonData.length>0" id="jsonApp" class="my-2">
+        <div v-for="(data,index) in showJsonData" v-html="data">
+        </div>
+        <div class="my-1">
+        <div class="alert alert-warning text-center" role="alert"  v-if="imgStatus==2">已加载全部</div>
+        <div v-else-if="imgStatus==1">
+          <button class="btn btn-primary btn-block" v-on:click="loadPageData(nextPage)">加载更多</button>
+        </div>
+          <div v-else-if="imgStatus==0">加载中。。。。。</div>
+        </div>
+      </div>
+    </div>
+
 	  </div>
 	</div>
 	</div>
 </body>
 <script>
 //hljs.highlightAll();
+
 let docApp = new Vue({
     el: "#docApp",
     data: {
 		current:'当前',
-		detailId:null
+		detailId:null,
+			// 文件类型(与detail.html略有不同)
+			fileType:['md','htm','doc','pdf','json'],
+// 保存json数据
+      allJsonData:[],
+      // 展示的数据
+      showJsonData:[],
+      // 图片一次加载数量
+      pageSize:5,
+      // 下一次加载的页数
+      nextPage:1,
+      // 临时加载数据
+      tempJsonData:[],
+      // 数据加载状态,0加载中，1下一页，2加载完毕
+      imgStatus:0
 	},
     created:function(){
 		let param = parsePram()
@@ -87,7 +96,7 @@ let docApp = new Vue({
 				this.detailId=param.main
 				this.current = param.title
 				setTitle(param.title)
-				getMdContent(param.name,param.type)
+				this.getMdContent(param.name,param.type)
 			}else{
 				$("#content").html('未找到信息')
 				setTitle('信息有误')
@@ -99,55 +108,133 @@ let docApp = new Vue({
 		}
     },
     
-    methods:{
-      searchDoc:function(id){
-        axios.get('/doc/php/docDb.php?type=0&id='+id).then(r => {
-		console.log(r.data.data)
-		  if(r.data.data!=null){
-			let name=r.data.data.name
-			let title = r.data.data.title
-			let type = r.data.data.type
-			if(r.data.data.sub>0){
-				this.detailId=r.data.data.sub
-			}else{
-				this.detailId=r.data.data.id
-			}
-			this.current = title
-			setTitle(title)
-			getMdContent(name,type)
-		  }else{
-			$("#content").html('未找到信息')
-			setTitle('未找到信息')
-			alert('未找到信息')
-		  }
-		  
+    methods: {
+      searchDoc: function (id) {
+        axios.get('/doc/php/docDb.php?type=0&id=' + id).then(r => {
+          console.log(r.data.data)
+          if (r.data.data != null) {
+            let name = r.data.data.name
+            let title = r.data.data.title
+            let type = r.data.data.type
+            if (r.data.data.sub > 0) {
+              this.detailId = r.data.data.sub
+            } else {
+              this.detailId = r.data.data.id
+            }
+            this.current = title
+            setTitle(title)
+            this.getMdContent(name, type)
+          } else {
+            $("#content").html('未找到信息')
+            setTitle('未找到信息')
+            alert('未找到信息')
+          }
+
         }).catch(function (error) {
           // handle error
           console.log(error);
         });
+      },
+      getMdContent: function (mdName, type) {
+        let sourceLoc = this.fileType[type] + '/' + mdName;
+        // console.log('文件位置:' + sourceLoc)
+        if ('0' == type) {
+          $.get(sourceLoc, function (response, status, xhr) {
+            $("#content").html(marked.parse(response));
+          });
+        } else if ('1' == type) {
+          $.get(sourceLoc, function (response, status, xhr) {
+            let parser = new DOMParser();
+            //console.log(response)
+            let htmlDoc = parser.parseFromString(response, 'text/html');
+            let bodyTag = htmlDoc.getElementsByTagName('body')[0]
+            //console.log(bodyTag.innerHTML)
+            //let thisBodyTag =  document.getElementsByTagName('body')[0]
+            //thisBodyTag.innerHTML=bodyTag.innerHTML
+            $("#htmId").html(bodyTag.innerHTML)
+          });
+        } else if ('4' == type) {
+          axios.get(sourceLoc)
+              .then(r=>{
+                // 请求成功时，处理响应数据
+                this.allJsonData = r.data
+                this.loadPageData(1)
+              })
+              .catch(function (error) {
+                // 请求失败时，处理错误
+                console.error(error);
+              });
+
+        } else {
+          $("#content").html('未找到信息')
+          setTitle('未找到信息')
+          // alert('未找到信息')
+        }
+
+      },
+      loadPageData:function(page){
+
+        let data = this.allJsonData
+        let showPageSize = this.pageSize
+        let size = this.allJsonData.length
+        let allPage = size%showPageSize==0?(size/showPageSize):(size/showPageSize+1)
+        let skipSize = (page-1)*showPageSize
+        // console.log("加载第："+page+"页,总页数："+allPage)
+        if(page > allPage){
+          alert('没了')
+          return
+        }
+        // console.log('跳过的个数：'+skipSize)
+        let showData
+        if(page != allPage){
+          showData =data.slice(skipSize,skipSize+showPageSize)
+
+        }else{
+          showData=data.slice(skipSize,size)
+        }
+        this.imgStatus=0
+        // console.log('showData的个数：'+showData.length)
+        // showData.forEach(d=>{
+        //   this.showJsonData.push(d)
+        // })
+        this.tempJsonData = showData
+        imgOnload()
+        this.nextPage = page+1
+        // console.log('showJsonData的个数：'+this.showJsonData.length)
       }
-	  }
+
+
+    }
+
   })
-  function getMdContent(mdName,type){
-	if('0'==type){
-		$.get('md/'+mdName, function(response, status, xhr){
-			$("#content").html(marked.parse(response));
-		});
-	}else{
-		$.get('htm/'+mdName, function(response, status, xhr){
-			let parser = new DOMParser();
-			//console.log(response)
-			let htmlDoc = parser.parseFromString(response, 'text/html');
-			let bodyTag = htmlDoc.getElementsByTagName('body')[0]
-			//console.log(bodyTag.innerHTML)
-			//let thisBodyTag =  document.getElementsByTagName('body')[0]
-			//thisBodyTag.innerHTML=bodyTag.innerHTML
-			$("#htmId").html(bodyTag.innerHTML)
-		});
-	}
-	
+
+// 依次加载图片
+  function imgOnload() {
+    if (docApp.tempJsonData.length==0){
+      if (docApp.allJsonData.length==docApp.showJsonData.length){
+        docApp.imgStatus=2
+      }else {
+        docApp.imgStatus = 1
+      }
+      return
+    }
+    let container = document.createElement('div');
+    // 使用innerHTML将字符串转换为实际的DOM元素
+    container.innerHTML = docApp.tempJsonData.splice(0, 1)[0]
+    let imgEl = container.firstChild
+    let onloadAttr = imgEl.getAttribute('onload')
+    if (onloadAttr == null){
+      // img标签添加onload事件
+      imgEl.setAttribute('onload','imgOnload()')
+    }
+    docApp.showJsonData.push(imgEl.outerHTML)
   }
-   
-    
+  async function getData(url){
+    let data = await $.get(url)
+    return data
+  }
+
+
+
 </script>
 </html>

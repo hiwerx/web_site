@@ -14,6 +14,16 @@ class DataBasic implements \Serializable {
     public $password = null;
     public $dbname = "m33642_db";
 
+    public function getStoreConnection() {
+        $conn = new mysqli($this->servername . ":" . $this->port, $this->username, $this->password, 'xz_store');
+        if ($conn->connect_error) {
+            return null;
+        }
+        $conn->query("set names utf8"); //防止乱码
+        $conn->query("SET time_zone = '+8:00'"); //设置时区
+        return $conn;
+    }
+
     public function getConnection() {
         $conn = new mysqli($this->servername . ":" . $this->port, $this->username, $this->password, $this->dbname);
         if ($conn->connect_error) {
@@ -32,7 +42,9 @@ class DataBasic implements \Serializable {
         $result = $conn->query($sql);
         $conn->close();
         if ($result === TRUE) {
-            return 0;
+            return 1;
+        } else if ($result === FALSE) {
+            return -1;
         } else if ($result->num_rows >= 0) {
             return $result->fetch_all(MYSQLI_ASSOC);
         } else {
@@ -40,11 +52,42 @@ class DataBasic implements \Serializable {
         }
     }
 
+    public function noCloseExecute(mysqli $conn,$sql) {
+        // echo $sql;
+       // $conn = $this->getConnection();
+        if ($conn == null)
+            return -1;
+        $result = $conn->query($sql);
+        //$conn->close();
+        if ($result === TRUE) {
+            return 1;
+        } else if ($result->num_rows >= 0) {
+            return $result->fetch_all(MYSQLI_ASSOC);
+        } else {
+            return -1;
+        }
+    }
+
+
     public function save($table, $data) {
+        //echo  $this->getInsertSql($table,$data);
+        //$conn = $this->getConnection();
+        //if ($conn == null) return -1;
+        //$res = $conn->query($this->getInsertSql($table,$data));
+        //$id = -1;
+        //if ($res === TRUE){
+        //    $id = mysqli_insert_id($conn);
+        //}
+        //$conn->close();
+        $sql=$this->getInsertSql($table,$data);  
+        return $this->saveBySql($sql);
+    }
+
+    public function saveBySql($sql) {
         //echo  $this->getInsertSql($table,$data);
         $conn = $this->getConnection();
         if ($conn == null) return -1;
-        $res = $conn->query($this->getInsertSql($table,$data));
+        $res = $conn->query($sql);
         $id = -1;
         if ($res === TRUE){
             $id = mysqli_insert_id($conn);

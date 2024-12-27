@@ -30,7 +30,7 @@ if($type==0) {
     if ($pageSize>30)$pageSize=30;
     $skipNum = ($page-1)*$pageSize;
 
-	$querySql = "select * from doc where sub < 1 limit $skipNum, $pageSize";
+	$querySql = "select * from doc where sub < 1 order by cttime desc limit $skipNum, $pageSize";
 	$res = $db->execute($querySql);
 	if($res !=-1) {
 	    $count=0;
@@ -47,7 +47,7 @@ if($type==0) {
 	$id = $_GET['id'];
 	$querySql = "select * from doc where id = ".$id;
 	$res = $db->execute($querySql);
-	$mainDoc;
+    $mainDoc= array();
 	if($res !=-1 && count($res)>0) {
 		$mainDoc = $res[0];
 	} else {

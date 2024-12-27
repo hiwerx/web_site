@@ -10,6 +10,7 @@ class JsonResult
 	function __construct() {
        
    }
+
    public function fail0(){
 	   
 	    $this->msg="fail";
@@ -17,7 +18,11 @@ class JsonResult
 		$this->data=null;
 	   return json_encode($this,JSON_UNESCAPED_UNICODE);
    }
-   
+
+    /**
+     * @param $msg 失败描述
+     * @return false|string
+     */
    public function fail1($msg){
 	   
 	    $this->msg=$msg;
